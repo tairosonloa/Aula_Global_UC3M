@@ -38,7 +38,7 @@ def get_user_info(token):
     req = urllib.request.Request(url_info)
     resp = urllib.request.urlopen(req).read()
 
-    # Yes, is a XML
+    # XML
     root = elementTree.fromstring(resp)
     # name = root.find("SINGLE/KEY[@name='fullname']/VALUE")  # Who am i
     user_id = root.find("SINGLE/KEY[@name='userid']/VALUE").text
@@ -65,10 +65,10 @@ def get_courses(token, user_id, lang):
         full_name = re.sub("<.*?>", ";", names[i].text)
         splitted = full_name.split(";")
         if len(splitted) > 1:
-            if lang == "es":
+            if lang == "es" and "Grado" not in splitted[1]:
                 courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", splitted[1])}
-            else:
-                courses[i] = {"course_id": ids[i].text, "course_name": splitted[2]}
+            elif lang == "en" and "Bachelor" not in splitted[2]:
+                courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", splitted[2])}
 
     return courses
 
@@ -99,22 +99,25 @@ def get_course_content(token, course_id):
 
 # Saves the files on disk
 def save_files(token, course_name, files):
-    path = 'courses/' + course_name
-    if not os.path.exists(path):
-        os.makedirs(path)
+    if len(files) == 0:
+        print("\tThis course has not content.")
+    else:
+        path = 'courses/' + course_name
+        if not os.path.exists(path):
+            os.makedirs(path)
 
-    for moodle_file in files:
-        print("\tDownloading: " + moodle_file['file_name'])
-        url = moodle_file['file_url'] + '&token=' + token
-        file = path + '/' + moodle_file['file_name']
-        response = urllib.request.urlopen(url)
-        fh = open(file, 'wb')
-        fh.write(response.read())
-        fh.close()
+        for moodle_file in files:
+            print("\tDownloading: " + moodle_file['file_name'])
+            url = moodle_file['file_url'] + '&token=' + token
+            file = path + '/' + moodle_file['file_name']
+            response = urllib.request.urlopen(url)
+            fh = open(file, 'wb')
+            fh.write(response.read())
+            fh.close()
 
 
 def main():
-    user = input("Enter user: ")
+    user = input("Enter NIA: ")
     passwd = getpass.getpass(prompt="Enter password: ")
     token = get_token(user, passwd)
     userid, lang = get_user_info(token)
