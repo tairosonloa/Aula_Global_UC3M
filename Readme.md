@@ -1,7 +1,7 @@
 # Python client to UC3M Aula Global
 This is a fork from my friend yagop's repository at https://github.com/yagop/AGClient
 
-This small python script allows you to download all the content from your [Aula Global](http://aulaglobal.uc3m.es) courses (.pdf, .docx, .pptx, etc.)
+This small python script allows you to download all the content from your [UC3M Aula Global](http://aulaglobal.uc3m.es) courses (.pdf, .docx, .pptx, etc.)
 
 To achieve user authentication, I use the Moodle API that involves making an https request that sends the student password as a parameter in the URL.
 ## Usage
