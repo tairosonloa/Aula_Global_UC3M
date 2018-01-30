@@ -64,10 +64,10 @@ def get_courses(token, user_id, lang):
     for i in range(len(names)):
         full_name = re.sub("<.*?>", ";", names[i].text)
         splitted = full_name.split(";")
-        if len(splitted) > 1:
-            if lang == "es" and "Grado" not in splitted[1]:
+        if len(splitted) > 1 and "Grado" not in splitted[1] and "Bachelor" not in splitted[2]:
+            if lang == "es":
                 courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", splitted[1])}
-            elif lang == "en" and "Bachelor" not in splitted[2]:
+            else:
                 courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", splitted[2])}
 
     return courses
