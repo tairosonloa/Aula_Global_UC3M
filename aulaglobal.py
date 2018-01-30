@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+This script allows you to download all the
+content from your UC3M Aula Global courses.
+"""
+
 import getpass
 import urllib.request
 import json
@@ -40,13 +45,13 @@ def get_user_info(token):
 
     # XML
     root = elementTree.fromstring(resp)
-    # name = root.find("SINGLE/KEY[@name='fullname']/VALUE")  # Who am i
+    print("Logged as " + root.find("SINGLE/KEY[@name='fullname']/VALUE").text)
     user_id = root.find("SINGLE/KEY[@name='userid']/VALUE").text
     lang = root.find("SINGLE/KEY[@name='lang']/VALUE").text
     return user_id, lang
 
 
-# Just simply return a list of courses ids
+# Just simply return a list of courses ids with its courses names
 def get_courses(token, user_id, lang):
     url_courses = "https://" + domain + webservice + "?wstoken=" \
         + token + "&wsfunction=core_enrol_get_users_courses&userid=" \
@@ -54,13 +59,12 @@ def get_courses(token, user_id, lang):
     req = urllib.request.Request(url_courses)
     resp = urllib.request.urlopen(req).read()
 
-    # print url_courses
     root = elementTree.fromstring(resp)
     ids = root.findall("MULTIPLE/SINGLE/KEY[@name='id']/VALUE")  # This is a list
     names = root.findall("MULTIPLE/SINGLE/KEY[@name='fullname']/VALUE")
     courses = [None] * len(names)
 
-    # format names
+    # Format names. Get the name in the correct language and remove metadata
     for i in range(len(names)):
         html_name = names[i].text.split("</span>")
         if len(html_name) > 1:
@@ -69,7 +73,6 @@ def get_courses(token, user_id, lang):
                 if tag in name and "Grado" not in name and "Bachelor" not in name and "Semana" not in name:
                     full_name = re.sub("<.*?>", "", name)
                     courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", full_name)}
-
     return courses
 
 
@@ -87,13 +90,11 @@ def get_course_content(token, course_id):
     files = []
     for file_content in file_contents:
         file_url = file_content.find("KEY[@name='fileurl']/VALUE").text
-        file_name = file_content.find("KEY[@name='filename']/VALUE"
-                                      ).text
+        file_name = file_content.find("KEY[@name='filename']/VALUE").text
         file_type = file_content.find("KEY[@name='type']/VALUE").text
         if file_type == "file":
             moodle_file = {"file_name": file_name, "file_url": file_url}
             files.append(moodle_file)
-
     return files
 
 
@@ -102,7 +103,7 @@ def save_files(token, course_name, files):
     if len(files) == 0:
         print("\tThis course has not content.")
     else:
-        path = 'courses/' + course_name
+        path = 'courses/' + course_name  # Where the files will be saved
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -117,6 +118,9 @@ def save_files(token, course_name, files):
 
 
 def main():
+    print("##################################################################\n" +
+          "# Download all the content from your courses at UC3M Aula Global #\n" +
+          "##################################################################\n")
     user = input("Enter NIA: ")
     passwd = getpass.getpass(prompt="Enter password: ")
     token = get_token(user, passwd)
