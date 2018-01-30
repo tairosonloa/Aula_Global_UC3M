@@ -5,7 +5,7 @@ This small python script allows you to download all the content from your [Aula 
 
 To achieve user authentication, I use the Moodle API that involves making an https request that sends the student password as a parameter in the URL.
 ## Usage
-Download the repository as zip, clone it with git, or just use wget to get only the script.
+Download the repository as zip, clone it with git, or just use wget to get only the script. On MacOS/Linux:
 ```
 wget https://raw.githubusercontent.com/tairosonloa/Aula_Global_UC3M/master/aulaglobal.py
 python3 aulaglobal.py
@@ -16,6 +16,6 @@ To install it on debian and ubuntu:
 ```
 # apt-get install python3
 ```
-Most of GNU/Linux distributions call the package as "python3"
+Most of GNU/Linux distributions call the package as "python3". MacOS use to have python version 3 installed.
 ## License
 This script is under [MIT license](https://github.com/tairosonloa/Aula_Global_UC3M/blob/master/LICENSE).
