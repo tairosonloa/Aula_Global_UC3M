@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (C) 2018 Aitor Alonso at mail@aalonso.pw
+# This script is under MIT license
 
 """
 This script allows you to download all the
