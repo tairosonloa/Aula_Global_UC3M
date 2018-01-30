@@ -62,13 +62,13 @@ def get_courses(token, user_id, lang):
 
     # format names
     for i in range(len(names)):
-        full_name = re.sub("<.*?>", ";", names[i].text)
-        splitted = full_name.split(";")
-        if len(splitted) > 1 and "Grado" not in splitted[1] and "Bachelor" not in splitted[2]:
-            if lang == "es":
-                courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", splitted[1])}
-            else:
-                courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", splitted[2])}
+        html_name = names[i].text.split("</span>")
+        if len(html_name) > 1:
+            tag = 'lang="' + lang + '"'
+            for name in html_name:
+                if tag in name and "Grado" not in name and "Bachelor" not in name and "Semana" not in name:
+                    full_name = re.sub("<.*?>", "", name)
+                    courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", full_name)}
 
     return courses
 
