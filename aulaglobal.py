@@ -1,6 +1,5 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 
 import getpass
 import urllib.request
@@ -59,6 +58,7 @@ def get_courses(token, user_id, lang):
     root = elementTree.fromstring(resp)
     ids = root.findall("MULTIPLE/SINGLE/KEY[@name='id']/VALUE")  # This is a list
     names = root.findall("MULTIPLE/SINGLE/KEY[@name='fullname']/VALUE")
+    courses = [None] * len(names)
 
     # format names
     for i in range(len(names)):
@@ -66,11 +66,11 @@ def get_courses(token, user_id, lang):
         splitted = full_name.split(";")
         if len(splitted) > 1:
             if lang == "es":
-                names[i].text = splitted[1]
+                courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", splitted[1])}
             else:
-                names[i].text = splitted[2]
+                courses[i] = {"course_id": ids[i].text, "course_name": splitted[2]}
 
-    return ids, names
+    return courses
 
 
 # Get the course contents (files urls)
@@ -98,14 +98,13 @@ def get_course_content(token, course_id):
 
 
 # Saves the files on disk
-def save_files(token, course_id, files):
-    # TODO crear carpetas con el nombre del curso, y no nombre ID
-    path = 'cursos/' + course_id
+def save_files(token, course_name, files):
+    path = 'courses/' + course_name
     if not os.path.exists(path):
         os.makedirs(path)
 
     for moodle_file in files:
-        print("Downloading: " + moodle_file['file_name'])
+        print("\tDownloading: " + moodle_file['file_name'])
         url = moodle_file['file_url'] + '&token=' + token
         file = path + '/' + moodle_file['file_name']
         response = urllib.request.urlopen(url)
@@ -119,42 +118,14 @@ def main():
     passwd = getpass.getpass(prompt="Enter password: ")
     token = get_token(user, passwd)
     userid, lang = get_user_info(token)
-    ids = get_courses(token, userid, lang)
-    for course_id in ids:
-        print("Course ID:" + course_id.text)
-        files_url = get_course_content(token, course_id.text)
-        save_files(token, course_id.text, files_url)
+    courses = get_courses(token, userid, lang)
+    for course in courses:
+        if course is not None:
+            print("\nCourse: " + course["course_name"])
+            files_url = get_course_content(token, course["course_id"])
+            save_files(token, course["course_name"], files_url)
+    print("\nAll files were downloaded.")
 
 
-# Main method to develop mode
-def develop():
-    print("Select an option:")
-    print("\t(1) Test get_token(user, passwd)")
-    print("\t(2) Test get_user_info(token)")
-    print("\t(3) Test get_courses(token, userid)")
-    print("\t(0) Exit")
-    select = input()
-    if select != "0":
-        user = input("Enter user: ")
-        # passwd = input("Enter password (WARNING: clear password): ")
-        passwd = getpass.getpass(prompt="Enter password: ")
-        if select == "1":
-            print("Token is "+str(get_token(user, passwd)))
-        if select == "2":
-            user_id, name = get_user_info(get_token(user, passwd))
-            print("User ID: " + user_id + ", language: " + name)
-        if select == "3":
-            token = get_token(user, passwd)
-            user_id, _ = get_user_info(token)
-            courses, names = get_courses(token, user_id)
-            print("Printing courses")
-            for c in courses:
-                print(c)
-            print("Printing names")
-            for n in names:
-                print(n.text)
-
-
-if __name__ == "__main__":
-    # main()
-    develop()
+if __name__ == '__main__':
+    main()
