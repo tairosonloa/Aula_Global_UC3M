@@ -118,8 +118,8 @@ def main():
     user = input("Enter user: ")
     passwd = getpass.getpass(prompt="Enter password: ")
     token = get_token(user, passwd)
-    userid = get_user_info(token)
-    ids = get_courses(token, userid)
+    userid, lang = get_user_info(token)
+    ids = get_courses(token, userid, lang)
     for course_id in ids:
         print("Course ID:" + course_id.text)
         files_url = get_course_content(token, course_id.text)
