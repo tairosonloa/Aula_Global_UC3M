@@ -10,6 +10,7 @@ content from your UC3M Aula Global courses.
 
 import getpass
 import urllib.request
+import urllib.parse
 import json
 import xml.etree.ElementTree as elementTree
 import os
@@ -22,8 +23,9 @@ service = "ag_mobile"
 
 # First we need the token
 def get_token(user, passwd):
+    safe_passwd = urllib.parse.quote(passwd, safe='')
     url_token = "https://" + domain + "/login/token.php?username=" \
-        + user + "&password=" + passwd + "&service=" + service
+        + user + "&password=" + safe_passwd + "&service=" + service
     req = urllib.request.Request(url_token)
     resp = urllib.request.urlopen(req).read()
 
