@@ -70,13 +70,14 @@ def get_courses(token, user_id, lang):
 
     # Format names. Get the name in the correct language and remove metadata
     for i in range(len(names)):
-        html_name = names[i].text.split("</span>")
-        if len(html_name) > 1:
-            tag = 'lang="' + lang + '"'
-            for name in html_name:
-                if tag in name and "Grado" not in name and "Bachelor" not in name and "Semana" not in name:
-                    full_name = re.sub("<.*?>", "", name)
-                    courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", full_name)}
+        full_name = re.findall(".+?(?=[0-9]+/+[0-9]+)[0-9]+/+[0-9]+-+\w{2}",names[i].text)
+        if len(full_name) == 2:
+            if lang == "es":
+                courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", full_name[0])}
+            elif lang == "en":
+                courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", full_name[1])}
+        elif len(full_name) == 1:
+            courses[i] = {"course_id": ids[i].text, "course_name": re.sub(".[0-9]+/+[0-9]+-\w*", "", full_name[0])}
     return courses
 
 
