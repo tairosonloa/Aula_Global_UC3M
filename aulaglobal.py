@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Aitor Alonso at mail@aalonso.pw
+# Copyright (C) 2018 Aitor Alonso at aalonso@aalonso.eu
 # This script is under MIT license
+#
+# Version: 2019.02
+# You can find new versions and fixes of this script over the time at
+# https://github.com/tairosonloa/Aula_Global_UC3M
 
 """
 This script allows you to download all the
