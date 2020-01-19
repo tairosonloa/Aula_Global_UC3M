@@ -13,6 +13,14 @@ import cgi
 import mechanize
 import os
 import getpass
+import argparse
+
+parser=argparse.ArgumentParser()
+
+parser.add_argument("-r", "--route", help="location to download")
+parser.add_argument("-u", "--user", help="nia")
+
+args = parser.parse_args()
 
 
 BASE_URL = "https://aulaglobal.uc3m.es"
@@ -36,7 +44,11 @@ br.open(BASE_URL)
 print("##################################################################\n" +
         "# Download all the content from your courses at UC3M Aula Global #\n" +
         "##################################################################\n")
-user = input("Enter NIA: ")
+
+if args.user is not None:
+    user=args.user
+else:
+    user = input("Enter NIA: ")
 passwd = getpass.getpass(prompt="Enter password: ")
 
 # Submit login form
@@ -64,6 +76,7 @@ for link in soup.findAll("a"):
     if href is not None and "/course/view.php" in href:
         courses.add(href)
 
+not_downloaded=[]
 # Check every course page
 for course in courses:
     url = br.open(course)
@@ -74,8 +87,13 @@ for course in courses:
     if not "Sala de Estudiantes" in h1 and not "Secretaría" in h1:
 
         # Create folder where files will be downloaded
-        path = os.path.join("courses/", h1.replace("/","."))
+        if args.route is not None:
+            path = os.path.join(args.route, h1.replace("/","."))
+        else:
+            path = os.path.join("courses/", h1.replace("/","."))
+
         print("\nChecking for files in " + h1)
+        
         if not os.path.exists(path):
             os.makedirs(path)
         
@@ -87,9 +105,17 @@ for course in courses:
                 # Donwload file and get filename from response header
                 response = br.open(href)
                 cdheader = response.get('Content-Disposition', None)
-                value, params = cgi.parse_header(cdheader)
+                if cdheader is not None:
+                    value, params = cgi.parse_header(cdheader)
+                else:
+                    not_downloaded.append((href, h1))
+                    continue
                 file  = os.path.join(path, params["filename"].encode("latin-1").decode("utf-8"))
                 print("\tDownloading: " + params["filename"].encode("latin-1").decode("utf-8"))
                 fh = open(file, 'wb')
                 fh.write(response.read())
                 fh.close()
+
+if len(not_downloaded)>0:
+    for element in not_downloaded:
+        print(element[0], " from ", element[1], " has not been downloaded, please download it manually")
