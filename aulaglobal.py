@@ -86,17 +86,24 @@ for course in courses:
     # Don't check Sala de Estudiantes nor Secretaría
     if not "Sala de Estudiantes" in h1 and not "Secretaría" in h1:
 
+        # Clean unsupported Windows namefile characters
+        unsupportedChars = '<>:"/|\\\*?'
+        for char in unsupportedChars:
+            if char in h1:
+                charIndex = h1.index(char)
+                h1 = h1[:charIndex] + h1[charIndex + 1:]
+
         # Create folder where files will be downloaded
         if args.route is not None:
-            path = os.path.join(args.route, h1.replace("/","."))
+            path = os.path.join(args.route, h1)
         else:
-            path = os.path.join("courses/", h1.replace("/","."))
+            path = os.path.join("courses/", h1)
 
         print("\nChecking for files in " + h1)
-        
+
         if not os.path.exists(path):
             os.makedirs(path)
-        
+
         # Check for files to download
         for link in soup.findAll("a"):
             href = link.get("href")
