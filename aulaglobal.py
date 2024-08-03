@@ -9,19 +9,19 @@
 
 import http.cookiejar as cookielib
 from bs4 import BeautifulSoup as bs
-import cgi
+from email.message import Message 
 import mechanize
 import os
 import getpass
 import argparse
 
-parser=argparse.ArgumentParser()
+parser = argparse.ArgumentParser()
 
 parser.add_argument("-r", "--route", help="location to download")
 parser.add_argument("-u", "--user", help="nia")
+parser.add_argument("-p", "--password", help="Aula Global pasword")
 
 args = parser.parse_args()
-
 
 BASE_URL = "https://aulaglobal.uc3m.es"
 
@@ -36,20 +36,24 @@ br.set_handle_redirect(True)
 br.set_handle_referer(True)
 br.set_handle_robots(False)
 
-br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time = 1)
-br.addheaders = [( 'User-agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.70 Safari/537.36' )]
+br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
+br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.70 Safari/537.36')]
 br.open(BASE_URL)
 
 # Ask for NIA and password
 print("##################################################################\n" +
-        "# Download all the content from your courses at UC3M Aula Global #\n" +
-        "##################################################################\n")
+      "# Download all the content from your courses at UC3M Aula Global #\n" +
+      "##################################################################\n")
 
-if args.user is not None:
-    user=args.user
+if args.user:
+    user = args.user
 else:
     user = input("Enter NIA: ")
-passwd = getpass.getpass(prompt="Enter password: ")
+
+if args.password:
+    passwd = args.password
+else:
+    passwd = getpass.getpass(prompt="Enter password: ")
 
 # Submit login form
 print("Login in...")
@@ -61,11 +65,13 @@ br.submit(id="submit_ok")
 # Check if success
 url = br.open(BASE_URL)
 login = url.get('X-Frame-Options', None)
-status, _ = cgi.parse_header(login)
+m = Message()
+m['content-type'] = login
+status = m.get_params()[0][0]
+
 if status.upper() == "DENY":
     print("Login failed. Check your NIA and password and try again")
     exit(1)
-
 
 # Inspect home page for courses and save them on a set
 print("Checking for courses...")
@@ -76,7 +82,7 @@ for link in soup.findAll("a"):
     if href is not None and "/course/view.php" in href:
         courses.add(href)
 
-not_downloaded=[]
+not_downloaded = []
 # Check every course page
 for course in courses:
     url = br.open(course)
@@ -92,7 +98,7 @@ for course in courses:
             if char in h1:
                 charIndex = h1.index(char)
                 h1 = h1[:charIndex] + h1[charIndex + 1:]
-
+        
         # Create folder where files will be downloaded
         if args.route is not None:
             path = os.path.join(args.route, h1)
@@ -113,16 +119,18 @@ for course in courses:
                 response = br.open(href)
                 cdheader = response.get('Content-Disposition', None)
                 if cdheader is not None:
-                    value, params = cgi.parse_header(cdheader)
+                    m = Message()
+                    m['content-type'] = cdheader
+                    params = m.get_params()[1]
                 else:
                     not_downloaded.append((href, h1))
                     continue
-                file  = os.path.join(path, params["filename"].encode("latin-1").decode("utf-8"))
-                print("\tDownloading: " + params["filename"].encode("latin-1").decode("utf-8"))
+                file = os.path.join(path, params[1].encode("latin-1").decode("utf-8"))
+                print("\tDownloading: " + params[1].encode("latin-1").decode("utf-8"))
                 fh = open(file, 'wb')
                 fh.write(response.read())
                 fh.close()
 
-if len(not_downloaded)>0:
+if len(not_downloaded) > 0:
     for element in not_downloaded:
         print(element[0], " from ", element[1], " has not been downloaded, please download it manually")
